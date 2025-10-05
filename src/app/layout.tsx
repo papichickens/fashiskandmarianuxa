@@ -75,7 +75,7 @@ export default function RootLayout({
         {/* PWA: Manifest & Icons */}
         <link rel="manifest" href="/manifest.webmanifest" />
         {/* iOS home screen icon */}
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/icons/icons/icon-96x96.png" />
         {/* Fallback favicon (browsers/tab icon) */}
         <link rel="icon" href="/favicon.ico" />
 
