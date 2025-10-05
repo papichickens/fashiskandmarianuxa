@@ -1,103 +1,199 @@
-import Image from "next/image";
+// src/app/page.tsx
+'use client';
 
-export default function Home() {
+import Link from 'next/link';
+// import { mockThings } from '../../lib/mockData'; // REMOVE THIS LINE
+import { colors } from '../../styles/color';
+import React, { useState, useEffect } from 'react'; // Import useEffect
+import { useAuth } from '../app/context/AuthContext';
+import { auth } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { getPlannedThings, getDoneThings, Thing } from '../../lib/thingsService'; // Import Firestore service functions and Thing interface
+
+export default function HomePage() {
+  const { user, loading, partnerName } = useAuth();
+  const [plannedThings, setPlannedThings] = useState<Thing[]>([]);
+  const [doneThingsCount, setDoneThingsCount] = useState(0); // <--- This is what you're concerned about
+  const [isLoadingThings, setIsLoadingThings] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchThings = async () => {
+      if (!loading && user) {
+        setIsLoadingThings(true);
+        setError(null);
+        try {
+          const fetchedPlannedThings = await getPlannedThings();
+          setPlannedThings(fetchedPlannedThings);
+
+          // const fetchedDoneThings = await getDoneThings();
+          // setDoneThingsCount(fetchedDoneThings.length)
+        } catch (err: any) {
+          console.error("Error fetching things:", err);
+          setError("Failed to load things. Please try again.");
+        } finally {
+          setIsLoadingThings(false);
+        }
+      } else if (!loading && !user) {
+        setPlannedThings([]);
+        setDoneThingsCount(0); // Explicitly set to 0 if no user
+        setIsLoadingThings(false);
+      }
+    };
+
+    fetchThings();
+  }, [loading, user]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error: any) {
+      console.error('Error signing out:', error.message);
+      alert(`Sign Out Failed: ${error.message}`);
+    }
+  };
+
+  // Display loading state
+  if (isLoadingThings || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.background, color: colors.subheadingText }}>
+        Loading your shared things...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8" style={{ color: colors.subheadingText }}>
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()} // Simple reload to retry
+          className="mt-4 px-6 py-3 rounded-full text-lg font-semibold"
+          style={{
+            backgroundColor: colors.primaryAccent,
+            color: 'white',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}
+        >
+          Reload Page
+        </button>
+      </div>
+    );
+  }
+
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="relative pb-20">
+      {/* Custom Header */}
+      <header
+        className="flex justify-between items-center px-6 pt-6 pb-4"
+        style={{ backgroundColor: colors.background }}
+      >
+        <div
+          className="flex rounded-md p-1"
+          style={{ backgroundColor: colors.borderGray }}
+        >
+          <Link href="/" passHref>
+            <span
+              className="px-4 py-1 rounded-md text-sm font-semibold cursor-pointer"
+              style={{ backgroundColor: colors.cardBackground, color: colors.headingText }}
+            >
+              to-do
+            </span>
+          </Link>
+          <Link href="/done" passHref>
+            <span
+              className="px-4 py-1 rounded-md text-sm font-semibold cursor-pointer"
+              style={{ backgroundColor: 'transparent', color: colors.subheadingText }}
+            >
+              done
+            </span>
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Right side of header: Add button and new Sign Out button */}
+        <div className="flex items-center space-x-4">
+          <Link href="/add-thing" passHref>
+            <span
+              className="text-2xl font-semibold cursor-pointer"
+              style={{ color: colors.primaryAccent }}
+            >
+              +
+            </span>
+          </Link>
+          {user && (
+            <button
+              onClick={handleSignOut}
+              className="px-3 py-1 text-sm rounded-md font-semibold"
+              style={{ backgroundColor: colors.primaryAccent, color: colors.cardBackground }}
+            >
+              Sign Out
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div className="max-w-xl mx-auto px-4 mt-8">
+        <div
+          className="p-6 rounded-2xl shadow-md mb-8"
+          style={{ backgroundColor: colors.cardBackground }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <h2 className="text-4xl font-bold mb-2" style={{ color: colors.headingText }}>
+            Things with {partnerName}
+          </h2>
+          <div className="flex items-center text-lg" style={{ color: colors.subheadingText }}>
+            <span className="mr-2">{doneThingsCount} things done</span>
+            <span style={{ color: colors.heartIcon }}>❤️</span>
+          </div>
+        </div>
+
+        <h3 className="text-xl font-semibold mb-4" style={{ color: colors.headingText }}>Things</h3>
+
+        {plannedThings.length === 0 ? (
+          <div className="text-center py-8" style={{ color: colors.subheadingText }}>
+            <p>No planned items yet! Time to dream up some adventures.</p>
+            <Link href="/add-thing" passHref>
+              <button
+                className="mt-4 px-6 py-3 rounded-full text-lg font-semibold"
+                style={{
+                  backgroundColor: '#EB5B46',
+                  color: 'white',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}
+              >
+                Add Your First Thing
+              </button>
+            </Link>
+          </div>
+        ) : (
+          <ul className="space-y-4">
+            {plannedThings.map((thing, index) => (
+              <li key={thing.id} className="relative z-[1]" style={{
+                marginTop: index > 0 ? '-1rem' : '0'
+              }}>
+                <Link href={`/things/${thing.id}`} passHref>
+                  <div
+                    className="block cursor-pointer p-6 rounded-xl shadow-md"
+                    style={{
+                      backgroundColor: colors.primaryAccent,
+                      color: colors.cardBackground,
+                      transform: `rotate(${index % 2 === 0 ? -1.5 : 1.5}deg)`,
+                      transition: 'transform 0.2s ease-in-out',
+                      zIndex: plannedThings.length - index // Ensure correct stacking order
+                    }}
+                  >
+                    <h3 className="text-3xl font-bold">{thing.title}</h3>
+                    {/* Optionally display who added it */}
+                    {thing.addedBy && (
+                      <p className="text-sm opacity-80 mt-2">Added by {thing.addedBy}</p>
+                    )}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

@@ -24,3 +24,31 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Define CSS variables for your colors for easier global use */
+  --color-background: #F8F3ED;
+  --color-primary-accent: #7B2C2D;
+  --color-card-background: #FFFFFF;
+  --color-heading-text: #1A1A1A;
+  --color-subheading-text: #333333;
+  --color-border-gray: #E0E0E0;
+  --color-done-tab: #A3B1C6;
+  --color-heart-icon: #E74C3C;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-subheading-text); /* Default text color */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-heading-text); /* Headings use darker text */
+}
+
+/* Ensure these are present from your Tailwind setup */
+/* You might have more base styles depending on your create-next-app choices */
