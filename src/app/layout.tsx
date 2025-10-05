@@ -16,8 +16,8 @@ const inter = Inter({ subsets: ['latin'] });
 // We define Metadata separately as a constant because client components cannot export metadata directly
 // In a real app, you might manage this using a dedicated head.tsx or a more advanced approach.
 const appMetadata: Metadata = {
-  title: 'My Couple App',
-  description: 'A shared app for you and your partner.',
+  title: 'Antes Do Casamento',
+  description: 'Olá dos vossos futuros pais Zé Raúl e Maria Artur',
 };
 
 
@@ -72,6 +72,20 @@ export default function RootLayout({
         {/* Manually include title/description if `metadata` export is removed due to 'use client' */}
         <title>{appMetadata.title as string}</title>
         <meta name="description" content={appMetadata.description as string} />
+        {/* PWA: Manifest & Icons */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        {/* iOS home screen icon */}
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        {/* Fallback favicon (browsers/tab icon) */}
+        <link rel="icon" href="/favicon.ico" />
+
+        {/* iOS PWA settings */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Antes Do Casamento" />
+
+        {/* Theme color for Android status bar / PWA */}
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body className={inter.className} style={{ backgroundColor: colors.background }}>
         <AuthProvider>
