@@ -47,7 +47,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--color-heading-text); /* Headings use darker text */
+  color: var(--color-background); /* Headings use darker text */
 }
 
 /* Ensure these are present from your Tailwind setup */

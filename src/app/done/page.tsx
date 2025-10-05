@@ -2,16 +2,15 @@
 'use client'; 
 
 import Link from 'next/link';
-// import { mockThings } from '../../../lib/mockData'; // REMOVE THIS LINE
 import Image from 'next/image';
 import { colors } from '../../../styles/color';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getDoneThings, Thing } from '../../../lib/thingsService'; // Import Firestore service functions
+import { getDoneThings, Thing } from '../../../lib/thingsService';
 
 export default function DonePage() {
-  const { user, loading: authLoading } = useAuth(); // Renamed loading to authLoading to avoid conflict
+  const { user, loading: authLoading } = useAuth();
   const [doneThings, setDoneThings] = useState<Thing[]>([]);
   const [isLoadingThings, setIsLoadingThings] = useState(true);
   const [error, setError] = useState<string | null>(null);

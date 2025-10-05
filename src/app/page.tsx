@@ -2,59 +2,79 @@
 'use client';
 
 import Link from 'next/link';
-// import { mockThings } from '../../lib/mockData'; // REMOVE THIS LINE
 import { colors } from '../../styles/color';
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
 import { useAuth } from '../app/context/AuthContext';
 import { auth } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
-import { getPlannedThings, getDoneThings, Thing } from '../../lib/thingsService'; // Import Firestore service functions and Thing interface
+import { getPlannedThings, getDoneThings, Thing } from '../../lib/thingsService';
+import ThingDetailModal from '../../components/ThingDetailModal'; // Import the new modal component
 
 export default function HomePage() {
-  const { user, loading, partnerName } = useAuth();
+  const { user, loading: authLoading, partnerName } = useAuth(); // Renamed loading to authLoading
   const [plannedThings, setPlannedThings] = useState<Thing[]>([]);
-  const [doneThingsCount, setDoneThingsCount] = useState(0); // <--- This is what you're concerned about
+  const [doneThingsCount, setDoneThingsCount] = useState(0);
   const [isLoadingThings, setIsLoadingThings] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchThings = async () => {
-      if (!loading && user) {
-        setIsLoadingThings(true);
-        setError(null);
-        try {
-          const fetchedPlannedThings = await getPlannedThings();
-          setPlannedThings(fetchedPlannedThings);
+  // State for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedThingId, setSelectedThingId] = useState<string | null>(null);
 
-          // const fetchedDoneThings = await getDoneThings();
-          // setDoneThingsCount(fetchedDoneThings.length)
-        } catch (err: any) {
-          console.error("Error fetching things:", err);
-          setError("Failed to load things. Please try again.");
-        } finally {
-          setIsLoadingThings(false);
-        }
-      } else if (!loading && !user) {
-        setPlannedThings([]);
-        setDoneThingsCount(0); // Explicitly set to 0 if no user
+  // Memoized function to fetch data
+  const fetchThings = useCallback(async () => {
+    if (!authLoading && user) {
+      setIsLoadingThings(true);
+      setError(null);
+      try {
+        const fetchedPlannedThings = await getPlannedThings();
+        setPlannedThings(fetchedPlannedThings);
+
+        const fetchedDoneThings = await getDoneThings();
+        setDoneThingsCount(fetchedDoneThings.length);
+      } catch (err: any) {
+        console.error("Error fetching things:", err);
+        setError("Failed to load things. Please try again.");
+      } finally {
         setIsLoadingThings(false);
       }
-    };
+    } else if (!authLoading && !user) {
+      // If not loading and no user, clear things (redirect will handle auth)
+      setPlannedThings([]);
+      setDoneThingsCount(0);
+      setIsLoadingThings(false);
+    }
+  }, [authLoading, user]); // Dependencies for useCallback
 
+  // Fetch things from Firestore when component mounts or user/loading changes
+  useEffect(() => {
     fetchThings();
-  }, [loading, user]);
+  }, [fetchThings]); // Depend on memoized fetchThings
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-    } catch (error: any) {
-      console.error('Error signing out:', error.message);
-      alert(`Sign Out Failed: ${error.message}`);
+    } catch (firebaseError: any) {
+      console.error('Error signing out:', firebaseError.message);
+      alert(`Sign Out Failed: ${firebaseError.message}`);
+    }
+  };
+
+  const openModal = (thingId: string) => {
+    setSelectedThingId(thingId);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = (refetch: boolean = false) => {
+    setIsModalOpen(false);
+    setSelectedThingId(null);
+    if (refetch) {
+      fetchThings(); // Refetch all data if the modal signaled a change
     }
   };
 
   // Display loading state
-  if (isLoadingThings || loading) {
+  if (isLoadingThings || authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: colors.background, color: colors.subheadingText }}>
         Loading your shared things...
@@ -80,7 +100,6 @@ export default function HomePage() {
       </div>
     );
   }
-
 
   return (
     <div className="relative pb-20">
@@ -169,31 +188,39 @@ export default function HomePage() {
           <ul className="space-y-4">
             {plannedThings.map((thing, index) => (
               <li key={thing.id} className="relative z-[1]" style={{
-                marginTop: index > 0 ? '-1rem' : '0'
+                marginTop: index > 0 ? '-1rem' : '0', color: colors.background
               }}>
-                <Link href={`/things/${thing.id}`} passHref>
-                  <div
-                    className="block cursor-pointer p-6 rounded-xl shadow-md"
-                    style={{
-                      backgroundColor: colors.primaryAccent,
-                      color: colors.cardBackground,
-                      transform: `rotate(${index % 2 === 0 ? -1.5 : 1.5}deg)`,
-                      transition: 'transform 0.2s ease-in-out',
-                      zIndex: plannedThings.length - index // Ensure correct stacking order
-                    }}
-                  >
-                    <h3 className="text-3xl font-bold">{thing.title}</h3>
-                    {/* Optionally display who added it */}
-                    {thing.addedBy && (
-                      <p className="text-sm opacity-80 mt-2">Added by {thing.addedBy}</p>
-                    )}
-                  </div>
-                </Link>
+                {/* Change Link to div with onClick */}
+                <div
+                  onClick={() => openModal(thing.id)} // Open modal on click
+                  className="block cursor-pointer p-6 rounded-xl shadow-md"
+                  style={{
+                    backgroundColor: colors.primaryAccent,
+                    color: colors.cardBackground,
+                    transform: `rotate(${index % 2 === 0 ? -1.5 : 1.5}deg)`,
+                    transition: 'transform 0.2s ease-in-out',
+                    zIndex: plannedThings.length - index
+                  }}
+                >
+                  <h3 className="text-3xl font-bold">{thing.title}</h3>
+                  {thing.addedBy && (
+                    <p className="text-sm opacity-80 mt-2">Added by {thing.addedBy}</p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {/* Render the Modal */}
+      {isModalOpen && (
+        <ThingDetailModal
+          thingId={selectedThingId}
+          isOpen={isModalOpen}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }
