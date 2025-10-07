@@ -67,13 +67,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Manually include title/description if `metadata` export is removed due to 'use client' */}
         <title>{appMetadata.title as string}</title>
         <meta name="description" content={appMetadata.description as string} />
         {/* PWA: Manifest & Icons */}
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="manifest" href="manifest.json" />
         {/* iOS home screen icon */}
         <link rel="apple-touch-icon" href="/icons/icon-96x96.png" />
         {/* Fallback favicon (browsers/tab icon) */}
@@ -87,7 +87,7 @@ export default function RootLayout({
         {/* Theme color for Android status bar / PWA */}
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={inter.className} style={{ backgroundColor: colors.background }}>
+      <body className={inter.className} style={{ backgroundColor: colors.background }} suppressHydrationWarning>
         <AuthProvider>
           <AuthWrapper> {/* Wrap children with AuthWrapper */}
             <main className="min-h-screen">

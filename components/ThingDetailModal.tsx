@@ -169,13 +169,21 @@ const ThingDetailModal: React.FC<ThingDetailModalProps> = ({ thingId, isOpen, on
               </p>
             )}
 
-            <Button onClick={handleMarkAsDone} className="w-full">
-              Mark as Done (and Add Photo!)
-            </Button>
+            <div className="mt-6">
+              <Button onClick={handleMarkAsDone} className="w-full bg-[#7B2C2D] text-white" variant="modal">
+                Add Photo!
+              </Button>
+            </div>
 
-            <Button variant="ghost" onClick={() => onClose()} className="w-full mt-4">
-              Close
-            </Button>
+            <div className="mt-4 flex justify-end gap-4">
+              <Button variant="ghost" onClick={() => onClose()}>
+                Close
+              </Button>
+              <Button onClick={handleMarkAsDone} className="bg-[#7B2C2D]" variant="primary">
+                Done
+              </Button>
+            </div>
+            
           </>
         )}
       </div>

@@ -136,7 +136,7 @@ export default function DonePage() {
               <Link href={`/done/${thing.id}`} key={thing.id} passHref>
                 <div 
                   className="block cursor-pointer rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
-                  style={{ backgroundColor: colors.cardBackground }}
+                  style={{ backgroundColor: colors.buttonRed }}
                 >
                   <div className="w-full h-48 relative">
                     <Image
